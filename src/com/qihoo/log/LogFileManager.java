@@ -4,6 +4,7 @@ import java.io.File;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.FileObserver;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -22,6 +23,7 @@ public class LogFileManager {
 	private WorkHandle mWorkHandle;
 	private LogFileExecutor mFileExecutor;
 	private LogFileObserver mFileObserver;
+	private String mFilePath;
 
 	private static final String KEY_TAG = "tag";
 	private static final String KEY_MESSAGE = "msg";
@@ -33,20 +35,28 @@ public class LogFileManager {
 		mHandlerThread = new HandlerThread("work_thread");
 		mHandlerThread.start();
 		mWorkHandle = new WorkHandle(mHandlerThread.getLooper());
-		mFileExecutor = new LogFileExecutor(getFilePath(),
-				LogFileExecutor.DEFAULT_WRITER_CACHE);
-		if(mFileExecutor.isAvailable()){
-			mFileObserver=new LogFileObserver(getFilePath());
+		mFilePath = getFilePath();
+		Log.d(TAG, "  filepath  " + mFilePath);
+		mFileExecutor = new LogFileExecutor(mFilePath, LogFileExecutor.DEFAULT_WRITER_CACHE);
+		if (mFileExecutor.isAvailable()) {
+			mFileObserver = new LogFileObserver(mFilePath);
 			mFileObserver.startWatching();
 		}
-			
+
 	}
 
 	private String getFilePath() {
-		return Constant.BASE_LOG_PATH + mContext.getPackageName()
-				+ Constant.LOG_PATH_END_NODE;
+		File sdCard = null;
+		if (Environment.get.equals(Environment.MEDIA_MOUNTED)) {
+			sdCard = Environment.getExternalStorageDirectory();
+			return sdCard.getAbsolutePath() + Constant.LOG_PATH_NODE_ANDROID + Constant.LOG_PATH_NODE_DATA
+					+ Constant.LOG_PATH_NODE_SLASH + mContext.getPackageName() + Constant.LOG_PATH_END_NODE;
+		} else {
+			return Environment.getDataDirectory().getPath() + Constant.LOG_PATH_NODE_DATA + Constant.LOG_PATH_NODE_SLASH
+					+ mContext.getPackageName() + Constant.LOG_PATH_END_NODE;
+		}
+
 	}
-	
 
 	/**
 	 * @param tag
@@ -62,8 +72,8 @@ public class LogFileManager {
 		message.setData(data);
 		mWorkHandle.sendMessage(message);
 	}
-	
-	public void close(){
+
+	public void close() {
 		mFileExecutor.close();
 		mFileObserver.stopWatching();
 	}
@@ -79,8 +89,7 @@ public class LogFileManager {
 		public void handleMessage(Message msg) {
 			switch (msg.what) {
 			case MSG_WRITE:
-				mFileExecutor.append(msg.getData().getString(KEY_TAG), msg
-						.getData().getString(KEY_MESSAGE));
+				mFileExecutor.append(msg.getData().getString(KEY_TAG), msg.getData().getString(KEY_MESSAGE));
 				break;
 			default:
 				break;
@@ -115,8 +124,8 @@ public class LogFileManager {
 
 			case FileObserver.MODIFY: // 文件被修改
 				Log.d(TAG, ".zhq.debug...MODIFY.....");
-				File file = new File(getFilePath());
-				if(file.length()>LIMIT_FILE_SIZE)//如果文件大于预设值就清空文件
+				File file = new File(mFilePath);
+				if (file.length() > LIMIT_FILE_SIZE) // 如果文件大于预设值就清空文件
 					mFileExecutor.clearData();
 				break;
 			}

@@ -9,7 +9,9 @@ import android.os.Environment;
 public class Constant {
 
 	// ------------日志文件路径sdcard/Android/data/{packagename}/log
-	public static final String BASE_LOG_PATH = Environment.getDataDirectory().getPath()+"/data/" ;
+	public static final String LOG_PATH_NODE_ANDROID = "/Android";
+	public static final String LOG_PATH_NODE_SLASH = "/";
+	public static final String LOG_PATH_NODE_DATA = "/data";
 	public static final String LOG_PATH_END_NODE = "/log.txt";
 
 	// ------------日志等级
