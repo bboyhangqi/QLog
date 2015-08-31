@@ -39,7 +39,10 @@ public class LogFileExecutor implements IFileExecutor {
 	 */
 	public LogFileExecutor(String filePath, int cacheSize) {
 		if (!checkFilePath(filePath)) {
-			if(!creatLogFile(filePath)){
+			isAvailable = false;
+			return;
+		} else {
+			if (!creatLogFile(filePath)) {
 				Log.e(TAG, "  creat file fault  ");
 				isAvailable = false;
 				return;
@@ -54,18 +57,28 @@ public class LogFileExecutor implements IFileExecutor {
 			isAvailable = false;
 		}
 	}
-	
-	
-	private boolean creatLogFile(String filePath){
-		Log.d(TAG, "  creatLogFile  filePath  "+filePath);
-		boolean ret =false;
-		File file =new File(filePath);
+
+	private boolean creatLogFile(String filePath) {
+		Log.d(TAG, "  creatLogFile  filePath  " + filePath);
+		File file = new File(filePath);
+		boolean ret = file.exists();
 		try {
-			ret=file.createNewFile();
+			if (!file.exists()) {
+				makeDir(file.getParentFile());
+				ret = file.createNewFile();
+			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 		return ret;
+	}
+
+	private void makeDir(File dir) {
+		Log.d(TAG, "  parent  path  " + dir.getAbsolutePath());
+		if (!dir.getParentFile().exists()) {
+			makeDir(dir.getParentFile());
+		}
+		dir.mkdir();
 	}
 
 	/**
@@ -75,8 +88,9 @@ public class LogFileExecutor implements IFileExecutor {
 	 * @return
 	 */
 	private boolean checkFilePath(String filePath) {
+		Log.e(TAG, "  checkFilePath   filePath   " + filePath);
 		if (filePath == null || filePath.isEmpty()) {
-			Log.e(TAG, "  file  path  error111  ");
+			Log.e(TAG, "  file  path  error  ");
 			return false;
 		}
 		return true;
@@ -85,8 +99,7 @@ public class LogFileExecutor implements IFileExecutor {
 	private boolean initWriter() {
 		mOutFile = new File(mFilePath);
 		try {
-			mWriter = new BufferedWriter(new FileWriter(mOutFile, true),
-					mWriterCache);
+			mWriter = new BufferedWriter(new FileWriter(mOutFile, true), mWriterCache);
 		} catch (FileNotFoundException e2) {
 			Log.e(TAG, "  file  not  exists  error  ");
 			return false;
@@ -99,7 +112,7 @@ public class LogFileExecutor implements IFileExecutor {
 
 	@Override
 	public boolean reset(String filePath, int cache) {
-		if (isAvailable){
+		if (isAvailable) {
 			close();
 		}
 		if (!checkFilePath(filePath)) {
@@ -186,7 +199,7 @@ public class LogFileExecutor implements IFileExecutor {
 	public void clearData() {
 		if (!isAvailable)
 			return;
-		isWait=true;
+		isWait = true;
 		File file = new File(mFilePath);
 		try {
 			if (file.exists()) {
@@ -195,11 +208,11 @@ public class LogFileExecutor implements IFileExecutor {
 				fileWriter.flush();
 				fileWriter.close();
 			}
-			isWait=false;
+			isWait = false;
 		} catch (IOException e) {
 			e.printStackTrace();
-		}finally{
-			isWait=false;
+		} finally {
+			isWait = false;
 		}
 
 	}

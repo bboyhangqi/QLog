@@ -21,6 +21,7 @@ public class LogFileManager {
 	private HandlerThread mHandlerThread;
 	private WorkHandle mWorkHandle;
 	private LogFileExecutor mFileExecutor;
+	private LogFileObserver mFileObserver;
 
 	private static final String KEY_TAG = "tag";
 	private static final String KEY_MESSAGE = "msg";
@@ -34,6 +35,11 @@ public class LogFileManager {
 		mWorkHandle = new WorkHandle(mHandlerThread.getLooper());
 		mFileExecutor = new LogFileExecutor(getFilePath(),
 				LogFileExecutor.DEFAULT_WRITER_CACHE);
+		if(mFileExecutor.isAvailable()){
+			mFileObserver=new LogFileObserver(getFilePath());
+			mFileObserver.startWatching();
+		}
+			
 	}
 
 	private String getFilePath() {
@@ -59,6 +65,7 @@ public class LogFileManager {
 	
 	public void close(){
 		mFileExecutor.close();
+		mFileObserver.stopWatching();
 	}
 
 	private static final int MSG_WRITE = 0;
@@ -107,8 +114,8 @@ public class LogFileManager {
 				break;
 
 			case FileObserver.MODIFY: // 文件被修改
-				Log.d(TAG, ".zhq.debug...MODIFY...");
-				File file = new File(path);
+				Log.d(TAG, ".zhq.debug...MODIFY.....");
+				File file = new File(getFilePath());
 				if(file.length()>LIMIT_FILE_SIZE)//如果文件大于预设值就清空文件
 					mFileExecutor.clearData();
 				break;
