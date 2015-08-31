@@ -17,21 +17,23 @@ public class QLog {
 
     private static final String TAG = "QLog";
 
-    private static Map<String, QLog> logs = new HashMap<String, QLog>();//ËùÓĞÊµÀı¼¯ºÏ
+    private static Map<String, QLog> logs = new HashMap<String, QLog>();//ï¿½ï¿½ï¿½ï¿½Êµï¿½ï¿½ï¿½
     private Context mContext;
 
 
     private static final int LOG_LEVEL_DEFAULT = Constant.LOG_LEVEL_DEBUG;
     private int mLowestLevel = LOG_LEVEL_DEFAULT;
+    private LogFileManager mLogFileManager;
 
     private QLog(Context context) {
+    	Log.d(TAG," QLog  in ");
         mContext = context;
+        mLogFileManager=new LogFileManager(context);
     }
 
 
     /**
-     * ¸ù¾İ°üÃû·µ»ØÖ¸¶¨°üÃûµÄÎ¨Ò»ÊµÀıinstance
-     *
+     * æ ¹æ®åŒ…åè¿”å›å”¯ä¸€instance(å½“ä¸€ä¸ªpidé’ˆå¯¹å¤šè¿›ç¨‹æ—¶)
      * @param context
      * @return QLog
      */
@@ -55,8 +57,14 @@ public class QLog {
         return context.getPackageName();
     }
 
+    
+    public void close() {
+    	mLogFileManager.close();
+    }
+    
+    
     /**
-     * ÉèÖÃ¼ÇÂ¼×îµÍÈÕÖ¾µÈ¼¶
+     * è®¾ç½®æ—¥å¿—æ‰“å°ç­‰çº§
      */
     public void setLowstLevel(int lowestLevel) {
         mLowestLevel = lowestLevel;
@@ -69,18 +77,18 @@ public class QLog {
     /**
      * level VERBOSE
      */
-    public void v(String module,String msg) {
+    public void v(String tag,String msg) {
         if(isPermissibleLevel(Constant.LOG_LEVEL_VERBOSE)){
-
+        	mLogFileManager.writeLog(tag, msg);
         }
     }
 
     /**
      * level DEBUG
      */
-    public void d(String module,String msg) {
+    public void d(String tag,String msg) {
         if(isPermissibleLevel(Constant.LOG_LEVEL_DEBUG)){
-
+        	mLogFileManager.writeLog(tag, msg);
         }
 
     }
@@ -88,9 +96,9 @@ public class QLog {
     /**
      * level INFO
      */
-    public void i(String module,String msg) {
+    public void i(String tag,String msg) {
         if(isPermissibleLevel(Constant.LOG_LEVEL_INFO)){
-
+        	mLogFileManager.writeLog(tag, msg);
         }
 
     }
@@ -98,9 +106,9 @@ public class QLog {
     /**
      * level WARN
      */
-    public void w(String module,String msg) {
+    public void w(String tag,String msg) {
         if(isPermissibleLevel(Constant.LOG_LEVEL_WARN)){
-
+        	mLogFileManager.writeLog(tag, msg);
         }
 
     }
@@ -108,9 +116,9 @@ public class QLog {
     /**
      * level ERROR
      */
-    public void e(String module,String msg) {
+    public void e(String tag,String msg) {
         if(isPermissibleLevel(Constant.LOG_LEVEL_ERROR)){
-
+        	mLogFileManager.writeLog(tag, msg);
         }
 
     }

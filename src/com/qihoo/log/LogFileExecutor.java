@@ -5,6 +5,7 @@ import android.util.Log;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Date;
@@ -14,186 +15,229 @@ import java.util.Date;
  */
 public class LogFileExecutor implements IFileExecutor {
 
-    private static final String TAG = "LogFileExecutor";
+	private static final String TAG = "LogFileExecutor";
 
-    private String mFilePath;
+	private String mFilePath;
 
-    private static final int DEFAULT_WRITER_CACHE = 1024 * 10;//Ä¬ÈÏBufferedWriterµÄcache¿Õ¼ä´óĞ¡Îª10KB
+	public static final int DEFAULT_WRITER_CACHE = 1024 * 10;// æ–‡ä»¶å†™å…¥æµç¼“å†²åŒºé»˜è®¤å¤§å°10KB
 
-    private int mWriterCache = DEFAULT_WRITER_CACHE;
+	private int mWriterCache = DEFAULT_WRITER_CACHE;
 
-    private BufferedWriter mWriter;
+	private BufferedWriter mWriter;
 
-    private File mOutFile;
+	private File mOutFile;
 
-    private boolean isAvailable = true;
+	private boolean isAvailable = true;
 
-    /**
-     * @param filePath ÎÄ¼şÂ·¾¶
-     * @param cache    ÎÄ¼şÊä³öÁ÷»º³å³Ø´óĞ¡
-     */
-    public LogFileExecutor(String filePath, int cache) {
-        if (!checkFilePath(filePath)) {
-            isAvailable = false;
-            return;
-        }
+	private boolean isWait;
 
-        mFilePath = filePath;
-        if (cache > 0)
-            mWriterCache = cache;
-        if (!initWriter()) {
-            isAvailable = false;
-        }
-    }
+	/**
+	 * @param filePath
+	 *            æ–‡ä»¶è·¯å¾„
+	 * @param cacheSize
+	 *            æ–‡ä»¶å†™å…¥æµç¼“å†²åŒºsize
+	 */
+	public LogFileExecutor(String filePath, int cacheSize) {
+		if (!checkFilePath(filePath)) {
+			if(!creatLogFile(filePath)){
+				Log.e(TAG, "  creat file fault  ");
+				isAvailable = false;
+				return;
+			}
+		}
 
+		Log.e(TAG, "  LogFileExecutor  ");
+		mFilePath = filePath;
+		if (cacheSize > 0)
+			mWriterCache = cacheSize;
+		if (!initWriter()) {
+			isAvailable = false;
+		}
+	}
+	
+	
+	private boolean creatLogFile(String filePath){
+		Log.d(TAG, "  creatLogFile  filePath  "+filePath);
+		boolean ret =false;
+		File file =new File(filePath);
+		try {
+			ret=file.createNewFile();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return ret;
+	}
 
-    /**
-     * ¼ì²éÎÄ¼şÂ·¾¶ÊÇ·ñ¿ÉÓÃ
-     *
-     * @param filePath
-     * @return
-     */
-    private boolean checkFilePath(String filePath) {
-        if (filePath == null || filePath.isEmpty()) {
-            Log.e(TAG, "  file  path  error  ");
-            return false;
-        }
-        return true;
-    }
+	/**
+	 * æ£€æµ‹æ–‡ä»¶æ˜¯å¦å­˜åœ¨
+	 * 
+	 * @param filePath
+	 * @return
+	 */
+	private boolean checkFilePath(String filePath) {
+		if (filePath == null || filePath.isEmpty()) {
+			Log.e(TAG, "  file  path  error111  ");
+			return false;
+		}
+		return true;
+	}
 
+	private boolean initWriter() {
+		mOutFile = new File(mFilePath);
+		try {
+			mWriter = new BufferedWriter(new FileWriter(mOutFile, true),
+					mWriterCache);
+		} catch (FileNotFoundException e2) {
+			Log.e(TAG, "  file  not  exists  error  ");
+			return false;
+		} catch (IOException e) {
+			Log.e(TAG, "  catch  IOException  " + e.toString());
+			return false;
+		}
+		return true;
+	}
 
-    private boolean initWriter() {
-        mOutFile = new File(mFilePath);
-        try {
-            mWriter = new BufferedWriter(new FileWriter(mOutFile, true), mWriterCache);
-        } catch (FileNotFoundException e2) {
-            Log.e(TAG, "  file  not  exists  error  ");
-            return false;
-        } catch (IOException e) {
-            Log.e(TAG, "  catch  IOException  " + e.toString());
-            return false;
-        }
-        return true;
-    }
+	@Override
+	public boolean reset(String filePath, int cache) {
+		if (isAvailable){
+			close();
+		}
+		if (!checkFilePath(filePath)) {
+			isAvailable = false;
+			return isAvailable;
+		}
+		mFilePath = filePath;
+		if (cache > 0)
+			mWriterCache = cache;
+		isWait = false;
+		isAvailable = initWriter();
 
+		return isAvailable;
+	}
 
-    @Override
-    public boolean reset(String filePath, int cache) {
-        if (!checkFilePath(filePath)) {
-            isAvailable = false;
-            return isAvailable;
-        }
-        mFilePath = filePath;
-        if (cache > 0)
-            mWriterCache = cache;
-        isAvailable = initWriter();
+	// /**
+	// * ï¿½ï¿½ï¿½Ä¼ï¿½×·ï¿½ï¿½ï¿½Ö¶ï¿½
+	// * @param head Ã¿ï¿½ĞµÄ±ï¿½ï¿½ï¿½Í·ï¿½ï¿½{date}|{class_name}|{method_name}
+	// * @param data ï¿½ï¿½Ö¾ï¿½ï¿½ï¿½ï¿½
+	// */
+	// @Override
+	// public void append(String head, String data) {
+	// if (mFilePath == null || mFilePath.isEmpty())
+	// return;
+	// BufferedWriter writer;
+	// BufferedReader reader;
+	// String divLine = "------------------------------------------";
+	// boolean isDrawLine = true;
+	// try {
+	// reader = new BufferedReader(new InputStreamReader(new
+	// ByteArrayInputStream(data.getBytes(Charset.forName("utf8"))),
+	// Charset.forName("utf8")));
+	// writer = new BufferedWriter(new FileWriter(mFilePath), mWriterCache);
+	// String line;
+	// while ((line = reader.readLine()) != null) {
+	// if (isDrawLine) {//ï¿½ï¿½ï¿½Ö¸ï¿½ï¿½ï¿½
+	// writer.append(divLine);
+	// writer.newLine();
+	// isDrawLine = false;
+	// }
+	// line = head + line;
+	// writer.append(line);
+	// }
+	// } catch (IOException e) {
+	// e.printStackTrace();
+	// } finally {
+	// }
+	// }
 
-        return isAvailable;
-    }
+	/**
+	 * è¿½åŠ æ—¥å¿—ä¿¡æ¯åˆ°æ–‡ä»¶ä¸­
+	 * 
+	 * @param tag
+	 *            æ—¥å¿—TAG
+	 * @param data
+	 *            æ—¥å¿—ä¿¡æ¯
+	 */
+	@Override
+	public void append(String tag, String data) {
+		if (!isAvailable)
+			return;
+		try {
+			String date = DateHelper.getInstance().getFormatDate(new Date());
+			String[] dataSplits = data.split("\n");
+			String line;
+			for (int i = 0; i < dataSplits.length; i++) {
+				while (isWait) {
+					Log.d(TAG, " wait ");
+					Thread.sleep(100);
+				}
+				line = dataSplits[i];
+				line = "date:" + date + "  tag:" + tag + "  msg:" + line;
+				mWriter.append(line);
+				mWriter.newLine();
+			}
+		} catch (Exception e) {
+			if (mWriter != null)
+				close();
+			e.printStackTrace();
+		}
+	}
 
+	@Override
+	public void clearData() {
+		if (!isAvailable)
+			return;
+		isWait=true;
+		File file = new File(mFilePath);
+		try {
+			if (file.exists()) {
+				FileWriter fileWriter = new FileWriter(file);
+				fileWriter.write("");
+				fileWriter.flush();
+				fileWriter.close();
+			}
+			isWait=false;
+		} catch (IOException e) {
+			e.printStackTrace();
+		}finally{
+			isWait=false;
+		}
 
-//    /**
-//     * ÏòÎÄ¼ş×·¼Ó×Ö¶Î
-//     * @param head Ã¿ĞĞµÄ±êÌâÍ·£º{date}|{class_name}|{method_name}
-//     * @param data ÈÕÖ¾ÄÚÈİ
-//     */
-//    @Override
-//    public void append(String head, String data) {
-//        if (mFilePath == null || mFilePath.isEmpty())
-//            return;
-//        BufferedWriter writer;
-//        BufferedReader reader;
-//        String divLine = "------------------------------------------";
-//        boolean isDrawLine = true;
-//        try {
-//            reader = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(data.getBytes(Charset.forName("utf8"))), Charset.forName("utf8")));
-//            writer = new BufferedWriter(new FileWriter(mFilePath), mWriterCache);
-//            String line;
-//            while ((line = reader.readLine()) != null) {
-//                if (isDrawLine) {//»­·Ö¸îÏß
-//                    writer.append(divLine);
-//                    writer.newLine();
-//                    isDrawLine = false;
-//                }
-//                line = head + line;
-//                writer.append(line);
-//            }
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        } finally {
-//        }
-//    }
+	}
 
+	/**
+	 * å°†writerç¼“å†²åŒºæ•°æ®å†™å…¥æ–‡ä»¶ä¸­
+	 */
+	@Override
+	public void flush() {
+		if (!isAvailable)
+			return;
+		if (mWriter != null) {
+			try {
+				mWriter.flush();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
 
-    /**
-     * ÏòÎÄ¼ş°´ĞĞ×·¼Ó×Ö¶Î
-     *
-     * @param tag  ±êÊ¶
-     * @param data ÈÕÖ¾ÄÚÈİ
-     */
-    @Override
-    public void append(String tag, String data) {
-        if (!isAvailable)
-            return;
-        try {
-            String date = DateHelper.getInstance().getFormatDate(new Date());
-            String[] dataSplits = data.split("\n");
-            String line;
-            for (int i = 0; i < dataSplits.length; i++) {
-                line = dataSplits[i];
-                line = "date:" + date + "  tag:" + tag + "  msg:" + line;
-                mWriter.append(line);
-                mWriter.newLine();
-            }
-        } catch (Exception e) {
-            if (mWriter != null)
-                close();
-            e.printStackTrace();
-        }
-    }
+	}
 
+	@Override
+	public void close() {
+		if (!isAvailable)
+			return;
+		if (mWriter != null) {
+			try {
+				flush();
+				mWriter.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+	}
 
-    @Override
-    public void clearData() {
-        if (!isAvailable)
-            return;
-    }
-
-    /**
-     * Ë¢ĞÂwriter»º³å¿Õ¼äÊı¾İĞ´Èëµ½ÎÄ¼şÖĞ
-     */
-    @Override
-    public void flush() {
-        if (!isAvailable)
-            return;
-        if (mWriter != null) {
-            try {
-                mWriter.flush();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-
-    }
-
-
-    @Override
-    public void close() {
-        if (!isAvailable)
-            return;
-        if (mWriter != null) {
-            try {
-                mWriter.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    @Override
-    public boolean isAvailable() {
-        return isAvailable;
-    }
-
+	@Override
+	public boolean isAvailable() {
+		return isAvailable;
+	}
 
 }

@@ -16,6 +16,6 @@ public interface IFileExecutor {
 
     boolean isAvailable();
 
-    boolean reset(String filePath, int cache);
+    boolean reset(String filePath, int cacheSize);
 
 }
