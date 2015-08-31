@@ -47,7 +47,7 @@ public class LogFileManager {
 
 	private String getFilePath() {
 		File sdCard = null;
-		if (Environment.get.equals(Environment.MEDIA_MOUNTED)) {
+		if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
 			sdCard = Environment.getExternalStorageDirectory();
 			return sdCard.getAbsolutePath() + Constant.LOG_PATH_NODE_ANDROID + Constant.LOG_PATH_NODE_DATA
 					+ Constant.LOG_PATH_NODE_SLASH + mContext.getPackageName() + Constant.LOG_PATH_END_NODE;
