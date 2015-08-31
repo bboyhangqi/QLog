@@ -5,9 +5,9 @@
     android:versionName="1.1" >
 
     <uses-sdk
-        android:minSdkVersion="10"
+        android:minSdkVersion="12"
         android:targetSdkVersion="21" />
-    
+
     <permission
         android:name="com.android.launcher.permission.UNINSTALL_SHORTCUT"
         android:permissionGroup="android.permission-group.SYSTEM_TOOLS"
@@ -69,6 +69,10 @@
     <uses-permission android:name="android.permission.READ_SYNC_SETTINGS" />
     <uses-permission android:name="android.permission.WRITE_SYNC_SETTINGS" />
 
+    <permission android:name="com.qihoo.permission.SET_LOG_LEVEL"  >
+        <meta-data android:name="level"  android:value="debug"/>
+    </permission>
+    
     <permission
         android:name="com.leidianos.launcher.UPGRADEBROADCASE"
         android:protectionLevel="signature" />
@@ -78,11 +82,11 @@
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
         android:theme="@android:style/Animation.Translucent" >
-        
-        <activity android:name="com.qihoo.log.TestActivity">
-            <intent-filter >
+        <activity android:name="com.qihoo.log.TestActivity" >
+            <intent-filter>
             </intent-filter>
         </activity>
+        <meta-data android:name="xlog_level"  android:value="error"/>
     </application>
 
 </manifest>

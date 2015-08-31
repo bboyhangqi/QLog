@@ -204,6 +204,7 @@ public class LogFileExecutor implements IFileExecutor {
 		try {
 			if (file.exists()) {
 				FileWriter fileWriter = new FileWriter(file);
+				int end = (int) (file.length() / 2);
 				fileWriter.write("");
 				fileWriter.flush();
 				fileWriter.close();
