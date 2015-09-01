@@ -22,7 +22,7 @@ public class LogFileManager {
 	private HandlerThread mHandlerThread;
 	private WorkHandle mWorkHandle;
 	private LogFileExecutor mFileExecutor;
-	private LogFileObserver mFileObserver;
+//	private LogFileObserver mFileObserver;
 	private String mFilePath;
 
 	private static final String KEY_TAG = "tag";
@@ -38,10 +38,11 @@ public class LogFileManager {
 		mFilePath = getFilePath();
 		Log.d(TAG, "  filepath  " + mFilePath);
 		mFileExecutor = new LogFileExecutor(mFilePath, LogFileExecutor.DEFAULT_WRITER_CACHE);
-		if (mFileExecutor.isAvailable()) {
-			mFileObserver = new LogFileObserver(mFilePath);
-			mFileObserver.startWatching();
-		}
+		checkFileSize();
+//		if (mFileExecutor.isAvailable()) {
+//			mFileObserver = new LogFileObserver(mFilePath);
+//			mFileObserver.startWatching();
+//		}
 
 	}
 
@@ -55,8 +56,9 @@ public class LogFileManager {
 			return Environment.getDataDirectory().getPath() + Constant.LOG_PATH_NODE_DATA + Constant.LOG_PATH_NODE_SLASH
 					+ mContext.getPackageName() + Constant.LOG_PATH_END_NODE;
 		}
-
 	}
+	
+	
 
 	/**
 	 * @param tag
@@ -75,7 +77,11 @@ public class LogFileManager {
 
 	public void close() {
 		mFileExecutor.close();
-		mFileObserver.stopWatching();
+//		mFileObserver.stopWatching();
+	}
+	
+	public void reset(){
+		mFileExecutor.reset(getFilePath(), LogFileExecutor.DEFAULT_WRITER_CACHE);
 	}
 
 	private static final int MSG_WRITE = 0;
@@ -98,38 +104,46 @@ public class LogFileManager {
 			super.handleMessage(msg);
 		}
 	}
-
-	class LogFileObserver extends FileObserver {
-
-		public LogFileObserver(String path) {
-			super(path);
-		}
-
-		public LogFileObserver(String path, int mask) {
-			super(path, mask);
-		}
-
-		@Override
-		public void onEvent(int event, String path) {
-			final int action = event & FileObserver.ALL_EVENTS;
-			switch (action) {
-			case FileObserver.ACCESS: // 文件被访问
-				break;
-
-			case FileObserver.DELETE: // 文件被删除
-				break;
-
-			case FileObserver.OPEN: // 文件目录被打开
-				break;
-
-			case FileObserver.MODIFY: // 文件被修改
-				Log.d(TAG, ".zhq.debug...MODIFY.....");
-				File file = new File(mFilePath);
-				if (file.length() > LIMIT_FILE_SIZE) // 如果文件大于预设值就清空文件
-					mFileExecutor.clearData();
-				break;
-			}
+	
+	private void checkFileSize(){
+		File file = new File(mFilePath);
+		if(file.exists()){
+			if (file.length() > LIMIT_FILE_SIZE) // 如果文件大于预设值就清空文件
+				mFileExecutor.clearData();
 		}
 	}
+
+//	class LogFileObserver extends FileObserver {
+//
+//		public LogFileObserver(String path) {
+//			super(path);
+//		}
+//
+//		public LogFileObserver(String path, int mask) {
+//			super(path, mask);
+//		}
+//
+//		@Override
+//		public void onEvent(int event, String path) {
+//			final int action = event & FileObserver.ALL_EVENTS;
+//			switch (action) {
+//			case FileObserver.ACCESS: // 文件被访问
+//				break;
+//
+//			case FileObserver.DELETE: // 文件被删除
+//				break;
+//
+//			case FileObserver.OPEN: // 文件目录被打开
+//				break;
+//
+//			case FileObserver.MODIFY: // 文件被修改
+//				Log.d(TAG, ".zhq.debug...MODIFY.....");
+//				File file = new File(mFilePath);
+//				if (file.length() > LIMIT_FILE_SIZE) // 如果文件大于预设值就清空文件
+//					mFileExecutor.clearData();
+//				break;
+//			}
+//		}
+//	}
 
 }

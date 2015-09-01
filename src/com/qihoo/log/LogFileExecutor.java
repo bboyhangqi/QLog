@@ -128,39 +128,6 @@ public class LogFileExecutor implements IFileExecutor {
 		return isAvailable;
 	}
 
-	// /**
-	// * ���ļ�׷���ֶ�
-	// * @param head ÿ�еı���ͷ��{date}|{class_name}|{method_name}
-	// * @param data ��־����
-	// */
-	// @Override
-	// public void append(String head, String data) {
-	// if (mFilePath == null || mFilePath.isEmpty())
-	// return;
-	// BufferedWriter writer;
-	// BufferedReader reader;
-	// String divLine = "------------------------------------------";
-	// boolean isDrawLine = true;
-	// try {
-	// reader = new BufferedReader(new InputStreamReader(new
-	// ByteArrayInputStream(data.getBytes(Charset.forName("utf8"))),
-	// Charset.forName("utf8")));
-	// writer = new BufferedWriter(new FileWriter(mFilePath), mWriterCache);
-	// String line;
-	// while ((line = reader.readLine()) != null) {
-	// if (isDrawLine) {//���ָ���
-	// writer.append(divLine);
-	// writer.newLine();
-	// isDrawLine = false;
-	// }
-	// line = head + line;
-	// writer.append(line);
-	// }
-	// } catch (IOException e) {
-	// e.printStackTrace();
-	// } finally {
-	// }
-	// }
 
 	/**
 	 * 追加日志信息到文件中
@@ -197,6 +164,7 @@ public class LogFileExecutor implements IFileExecutor {
 
 	@Override
 	public void clearData() {
+		Log.d(TAG	, "  clearData  ");
 		if (!isAvailable)
 			return;
 		isWait = true;
@@ -204,7 +172,6 @@ public class LogFileExecutor implements IFileExecutor {
 		try {
 			if (file.exists()) {
 				FileWriter fileWriter = new FileWriter(file);
-				int end = (int) (file.length() / 2);
 				fileWriter.write("");
 				fileWriter.flush();
 				fileWriter.close();

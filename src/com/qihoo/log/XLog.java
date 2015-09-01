@@ -70,6 +70,10 @@ public class XLog {
 	public void close() {
 		mLogFileManager.close();
 	}
+	
+	public void reset() {
+		mLogFileManager.reset();
+	}
 
 	/**
 	 * 设置日志打印等级
